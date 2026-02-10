@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "nodemon": "^3.1.11",
+    "oracledb": "^6.10.0"
+  }
+}
