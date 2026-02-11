@@ -3,16 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Community</title>
+    <title>이터널 리턴 커뮤니티 (임시 메인)</title>
     <link rel="stylesheet" href="./css/mainPage.css" />
   </head>
   <body>
-    <!-- HEADER -->
-    <header>
-      <h1>hello</h1>
-    </header>
-
-    <!-- FOOTER -->
-    <footer></footer>
+    <div class="categoryList">
+      <button data-url="/post/main/1">전체글</button>
+      <button data-url="/post/popular/1">개념글</button>
+      <button data-url="/post/1/1">잡담</button>
+      <button data-url="/post/2/1">질문</button>
+      <button data-url="post/3/1">정보</button>
+      <button data-url="post/4/1">창작</button>
+    </div>
+    <div class="boardList">
+      <table>
+        <thead>
+          <tr>
+            <th>글번호</th>
+            <th>카테고리</th>
+            <th>제목</th>
+            <th>작성자</th>
+            <th>조회수</th>
+            <th>추천수</th>
+            <th>작성일</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <script src="./js/board.js"></script>
+    <script src="./js/inquiry.js"></script>
+    <script src="./js/event.js"></script>
   </body>
 </html>
