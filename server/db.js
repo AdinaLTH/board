@@ -1,5 +1,6 @@
 const oracledb = require("oracledb");
 
+oracledb.fetchAsString = [oracledb.CLOB];
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
 async function getConnection() {

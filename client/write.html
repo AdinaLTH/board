@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>글 작성 - 이터널 리턴 커뮤니티</title>
+    <link rel="stylesheet" href="./css/mainPage.css" />
+    <style>
+      /* 글쓰기 전용 스타일 */
+      .write-container {
+        max-width: 800px;
+        margin: 40px auto;
+        color: #ddd;
+      }
+
+      .input-group {
+        margin-bottom: 20px;
+      }
+      .input-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #aaa;
+      }
+
+      /* 입력창 공통 스타일 */
+      .form-control {
+        width: 100%;
+        padding: 12px;
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        color: white;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 1rem;
+      }
+      .form-control:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+
+      /* 가로 배치 (카테고리, 닉네임, 비번) */
+      .row-group {
+        display: flex;
+        gap: 15px;
+      }
+      .col {
+        flex: 1;
+      }
+
+      /* 본문 (높게) */
+      textarea.form-control {
+        height: 400px;
+        resize: vertical;
+        line-height: 1.6;
+      }
+
+      /* 파일 첨부 영역 (디자인용) */
+      .file-drop-zone {
+        border: 2px dashed #444;
+        background-color: #1a1a1a;
+        padding: 40px;
+        text-align: center;
+        color: #666;
+        margin-bottom: 20px;
+        border-radius: 8px;
+      }
+
+      /* 하단 버튼 */
+      .btn-area {
+        text-align: right;
+        margin-top: 30px;
+      }
+      .btn-cancel {
+        background-color: #444;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-right: 10px;
+      }
+      .btn-submit {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+      .btn-submit:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="write-container">
+      <h2
+        id="page-title"
+        style="border-bottom: 2px solid #333; padding-bottom: 15px"
+      >
+        새 글 작성
+      </h2>
+
+      <div class="row-group input-group">
+        <div style="flex: 1">
+          <select id="category" class="form-control">
+            <option value="1">잡담</option>
+            <option value="2">질문</option>
+            <option value="3">정보</option>
+            <option value="4">창작</option>
+          </select>
+        </div>
+        <div style="flex: 4">
+          <input
+            type="text"
+            id="title"
+            class="form-control"
+            placeholder="제목을 입력하세요"
+          />
+        </div>
+      </div>
+
+      <div class="row-group input-group">
+        <div class="col">
+          <input
+            type="text"
+            id="nickname"
+            class="form-control"
+            placeholder="닉네임"
+          />
+        </div>
+        <div class="col">
+          <input
+            type="password"
+            id="password"
+            class="form-control"
+            placeholder="비밀번호 (수정/삭제 시 필요)"
+          />
+        </div>
+      </div>
+
+      <div class="input-group">
+        <textarea
+          id="content"
+          class="form-control"
+          placeholder="내용을 입력하세요"
+        ></textarea>
+      </div>
+
+      <div class="file-drop-zone">
+        <p>📷 🎥</p>
+        <p>여기에 이미지를 드래그하거나 클릭하여 업로드하세요</p>
+      </div>
+
+      <div class="btn-area">
+        <button class="btn-cancel" onclick="history.back()">취소</button>
+        <button class="btn-submit" id="btn-save">등록</button>
+      </div>
+    </div>
+
+    <script src="./js/write.js"></script>
+  </body>
+</html>

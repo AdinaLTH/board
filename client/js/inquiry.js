@@ -1,11 +1,4 @@
-const SERVER_URL = "http://localhost:3000";
-
-fetch(SERVER_URL + "/post/main/1")
-  .then((resp) => resp.json())
-  .then((data) => {
-    data.forEach((ele) => {
-      console.log(ele);
-      const tr = makeRow(ele);
-      document.querySelector(".boardList tbody").appendChild(tr);
-    });
-  });
+window.onload = () => {
+  loadBoardData(); // 메인 리스트 로딩
+  loadSidebar(); // ★ 사이드바 로딩 (이게 빠져있었을 겁니다!)
+};

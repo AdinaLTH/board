@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>게시글 상세</title>
+    <link rel="stylesheet" href="./css/mainPage.css" />
+    <style>
+      /* 상세 페이지 전용 스타일 */
+      body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: sans-serif;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* 1. 상단 헤더 영역 */
+      .post-header {
+        border-bottom: 1px solid #333;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+      }
+      .category-badge {
+        color: #4da6ff;
+        font-weight: bold;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        display: inline-block;
+      }
+      .post-title {
+        font-size: 1.8rem;
+        margin: 0 0 15px 0;
+        color: #fff;
+      }
+      .post-meta {
+        display: flex;
+        justify-content: space-between;
+        color: #888;
+        font-size: 0.9rem;
+        align-items: center;
+      }
+      .meta-left span {
+        margin-right: 15px;
+      }
+
+      /* 2. 본문 영역 */
+      .post-content {
+        min-height: 300px;
+        line-height: 1.8;
+        font-size: 1.1rem;
+        white-space: pre-wrap;
+        margin-bottom: 50px;
+      }
+
+      /* 3. 추천/비추천 버튼 영역 (기획서 디자인 반영) */
+      .vote-section {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 50px;
+      }
+      .vote-btn {
+        width: 100px;
+        height: 80px;
+        border: none;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1rem;
+        color: white;
+        transition: opacity 0.2s;
+      }
+      .vote-btn:hover {
+        opacity: 0.8;
+      }
+      .btn-like {
+        background-color: #007bff;
+      } /* 파란색 */
+      .btn-dislike {
+        background-color: #3e3e3e;
+      } /* 회색 */
+      .vote-count {
+        font-size: 1.4rem;
+        margin-top: 5px;
+      }
+
+      /* 4. 댓글 영역 */
+      .comment-section {
+        background-color: #1e1e1e;
+        padding: 20px;
+        border-radius: 8px;
+      }
+      .comment-header {
+        margin-bottom: 15px;
+        font-weight: bold;
+        border-bottom: 1px solid #333;
+        padding-bottom: 10px;
+      }
+      .comment-input-box {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      textarea {
+        width: 100%;
+        height: 80px;
+        background-color: #121212;
+        border: 1px solid #333;
+        color: #ddd;
+        padding: 10px;
+        border-radius: 5px;
+        resize: none;
+        box-sizing: border-box;
+      }
+      .btn-submit {
+        align-self: flex-end;
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      /* 하단 목록 버튼 */
+      .btn-back {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #333;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="post-header">
+        <span id="category_name" class="category-badge">Loading...</span>
+        <h1 id="post_title" class="post-title">제목을 불러오는 중입니다...</h1>
+        <div class="post-meta">
+          <div class="meta-left">
+            <span id="nickname">작성자</span>
+            <span id="created_at">0000-00-00</span>
+          </div>
+          <div class="meta-right">조회 <span id="view_count">0</span></div>
+        </div>
+      </div>
+
+      <div id="content" class="post-content">내용을 불러오는 중입니다...</div>
+
+      <div class="vote-section">
+        <button class="vote-btn btn-like">
+          추천
+          <span id="like_count" class="vote-count">0</span>
+        </button>
+        <button class="vote-btn btn-dislike">
+          비추천
+          <span id="dislike_count" class="vote-count">0</span>
+        </button>
+      </div>
+      <div
+        class="edit-btn-group"
+        style="text-align: right; margin-bottom: 20px; padding-right: 10px"
+      >
+        <button
+          id="btn-edit"
+          style="
+            background: #444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-right: 5px;
+          "
+        >
+          수정
+        </button>
+        <button
+          id="btn-delete"
+          style="
+            background: #d9534f;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+          "
+        >
+          삭제
+        </button>
+      </div>
+
+      <div class="comment-section">
+        <div class="comment-header">댓글</div>
+        <div class="comment-input-box">
+          <textarea placeholder="댓글을 입력하세요..."></textarea>
+          <button class="btn-submit">댓글 작성</button>
+        </div>
+      </div>
+
+      <button class="btn-back" onclick="location.href = 'mainPage.html'">
+        목록으로
+      </button>
+    </div>
+
+    <script src="./js/view.js"></script>
+  </body>
+</html>

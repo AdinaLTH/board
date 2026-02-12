@@ -3,36 +3,111 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>이터널 리턴 커뮤니티 (임시 메인)</title>
+    <title>이터널 리턴 커뮤니티</title>
     <link rel="stylesheet" href="./css/mainPage.css" />
   </head>
   <body>
-    <div class="categoryList">
-      <button data-url="/post/main/1">전체글</button>
-      <button data-url="/post/popular/1">개념글</button>
-      <button data-url="/post/1/1">잡담</button>
-      <button data-url="/post/2/1">질문</button>
-      <button data-url="post/3/1">정보</button>
-      <button data-url="post/4/1">창작</button>
+    <header>
+      <div class="header-content">
+        <h1 id="main-title">이터널 리턴 게시판</h1>
+        <p>구독자 27만명 | 방문자수 540명 | 운영자 Adina</p>
+      </div>
+    </header>
+
+    <div class="main-container">
+      <main class="board-section">
+        <div class="control-bar">
+          <div class="left-controls">
+            <button id="btn-all" class="type-btn active" data-type="all">
+              전체글
+            </button>
+            <button id="btn-best" class="type-btn best" data-type="best">
+              ★ 개념글
+            </button>
+
+            <select id="sort-select">
+              <option value="latest">등록순</option>
+              <option value="oldest">오래된순</option>
+              <option value="popular">추천순</option>
+            </select>
+
+            <select id="limit-select">
+              <option value="20">20개</option>
+              <option value="40">40개</option>
+              <option value="10">10개</option>
+            </select>
+          </div>
+          <div class="right-controls">
+            <button class="write-btn" onclick="location.href = 'write.html'">
+              글쓰기
+            </button>
+          </div>
+        </div>
+
+        <div class="category-bar categoryList">
+          <button data-type="category" data-id="1">💬 잡담</button>
+          <button data-type="category" data-id="2">❓ 질문</button>
+          <button data-type="category" data-id="3">📝 정보</button>
+          <button data-type="category" data-id="4">🎨 창작</button>
+        </div>
+
+        <div class="boardList">
+          <table>
+            <thead>
+              <tr>
+                <th width="8%">번호</th>
+                <th width="8%">분류</th>
+                <th width="45%">제목</th>
+                <th width="15%">작성자</th>
+                <th width="10%">작성일</th>
+                <th width="7%">조회</th>
+                <th width="7%">추천</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div id="pagination" class="pagination"></div>
+        <div
+          class="search-box"
+          style="text-align: center; margin-top: 20px; margin-bottom: 40px"
+        >
+          <select id="search-type">
+            <option value="all">전체</option>
+            <option value="title">제목</option>
+            <option value="nickname">작성자</option>
+          </select>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="검색어를 입력하세요"
+            style="padding: 5px; width: 200px"
+          />
+          <button id="btn-search" style="padding: 5px 10px; cursor: pointer">
+            검색
+          </button>
+        </div>
+      </main>
+
+      <aside class="sidebar">
+        <div class="side-box">
+          <h3>↗ 최근 글 보기</h3>
+          <ul id="recent-posts">
+            <li>로딩중...</li>
+          </ul>
+        </div>
+        <div class="side-box">
+          <h3>이 채널의 개념글</h3>
+          <ul id="side-best-posts">
+            <li>로딩중...</li>
+          </ul>
+        </div>
+      </aside>
     </div>
-    <div class="boardList">
-      <table>
-        <thead>
-          <tr>
-            <th>글번호</th>
-            <th>카테고리</th>
-            <th>제목</th>
-            <th>작성자</th>
-            <th>조회수</th>
-            <th>추천수</th>
-            <th>작성일</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+
     <script src="./js/board.js"></script>
-    <script src="./js/inquiry.js"></script>
     <script src="./js/event.js"></script>
+    <script src="./js/inquiry.js"></script>
   </body>
 </html>
