@@ -1,6 +1,7 @@
 // client/js/board.js
 
-const SERVER_URL = "http://localhost:3000";
+// 본인 컴퓨터의 IP 주소로 변경
+const SERVER_URL = "http://192.168.0.32:3000";
 
 // ★ 상태 변수에 search와 searchType 추가
 let currentState = {

@@ -2,9 +2,13 @@ const express = require("express");
 const { getConnection, oracledb } = require("./db");
 const cors = require("cors");
 const app = express();
+const path = require("path");
+const fs = require("fs");
+const multer = require("multer");
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "../client/uploads")));
 
 app.get("/", (req, res) => {
   res.send("OK");
@@ -194,37 +198,41 @@ app.get("/api/posts", async (req, res) => {
 //     }
 //   }
 // });
-// [수정 완료] 글 상세 조회 (경로에 /api 추가하고, parseInt 적용)
 app.get("/api/post/view/:pid", async (req, res) => {
-  // 1. 숫자로 변환 (이게 없으면 ORA-01722 에러 남!)
   const pid = parseInt(req.params.pid);
-
   let conn;
   try {
     conn = await getConnection();
 
     // 조회수 증가
     await conn.execute(
-      `update posts
-       set view_count = view_count + 1
-       where post_id = :pid`,
+      `UPDATE POSTS SET VIEW_COUNT = VIEW_COUNT + 1 WHERE POST_ID = :pid`,
       { pid: pid },
       { autoCommit: true },
     );
 
-    // 상세 내용 조회
-    const sql = `select p.post_id, 
-                        c.name as category_name, 
-                        p.title, 
-                        p.nickname, 
-                        p.view_count,
-                        p.content, 
-                        p.like_count, 
-                        p.dislike_count, 
-                        to_char(p.created_at, 'RRRR-MM-DD HH24:MI:SS') as created_at
-                from posts p, categories c
-                where p.category_id = c.category_id
-                and p.post_id = :pid`;
+    // ★ 핵심 변경: LEFT JOIN FILES f ON ...
+    // 게시글(p)에 딸린 파일(f)이 있으면 가져오고, 없으면 맙니다.
+    // 파일이 여러 개일 경우 가장 최근 것 하나만 가져오도록 정렬 후 1개만 자릅니다.
+    const sql = `
+      SELECT p.post_id, 
+             c.name as category_name, 
+             p.title, 
+             p.nickname, 
+             p.view_count,
+             p.content, 
+             p.like_count, 
+             p.dislike_count, 
+             TO_CHAR(p.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at,
+             f.file_path,        -- ★ 파일 경로 추가
+             f.original_filename -- ★ 원본 파일명 추가
+      FROM POSTS p
+      JOIN CATEGORIES c ON p.category_id = c.category_id
+      LEFT JOIN FILES f ON p.post_id = f.post_id 
+      WHERE p.post_id = :pid
+      ORDER BY f.file_id DESC -- 최신 파일 우선
+      FETCH FIRST 1 ROWS ONLY
+    `;
 
     const { rows } = await conn.execute(sql, { pid });
 
@@ -390,16 +398,19 @@ app.post("/api/post/delete", async (req, res) => {
 // });
 
 // ==========================================
-// 📌 글 작성 API (INSERT)
+// 📝 글 작성 API (파일 정보 포함)
 // ==========================================
 app.post("/api/post/write", async (req, res) => {
-  const { title, nickname, password, category_id, content } = req.body;
+  // fileInfo는 프론트엔드에서 업로드 후 받은 정보 객체
+  const { title, nickname, password, category_id, content, fileInfo } =
+    req.body;
 
   let conn;
   try {
     conn = await getConnection();
 
-    const result = await conn.execute(
+    // 1. 게시글 저장 (POSTS)
+    const postResult = await conn.execute(
       `INSERT INTO POSTS (TITLE, NICKNAME, PASSWORD, CATEGORY_ID, CONTENT) 
        VALUES (:title, :nickname, :password, :category_id, :content)
        RETURNING POST_ID INTO :pid`,
@@ -411,13 +422,34 @@ app.post("/api/post/write", async (req, res) => {
         content,
         pid: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
       },
-      { autoCommit: true },
+      { autoCommit: false }, // ★ 트랜잭션 시작 (파일 저장까지 하고 커밋)
     );
 
-    const newPostId = result.outBinds.pid[0];
+    const newPostId = postResult.outBinds.pid[0];
+
+    // 2. 파일 정보가 있다면 FILES 테이블에 저장
+    if (fileInfo) {
+      await conn.execute(
+        `INSERT INTO FILES (POST_ID, ORIGINAL_FILENAME, STORED_FILENAME, FILE_PATH, FILE_TYPE)
+             VALUES (:postId, :orgName, :savedName, :path, :type)`,
+        {
+          postId: newPostId,
+          orgName: fileInfo.originalName,
+          savedName: fileInfo.storedName,
+          path: fileInfo.filePath,
+          type: fileInfo.fileType,
+        },
+        { autoCommit: false },
+      );
+    }
+
+    // 3. 둘 다 성공하면 커밋
+    await conn.commit();
+
     res.json({ success: true, POST_ID: newPostId });
   } catch (err) {
     console.error(err);
+    if (conn) await conn.rollback(); // 에러나면 롤백
     res.status(500).json({ success: false, message: "글 작성 실패" });
   } finally {
     if (conn)
@@ -425,6 +457,62 @@ app.post("/api/post/write", async (req, res) => {
         await conn.close();
       } catch (e) {}
   }
+});
+
+// 2. 업로드 폴더 자동 생성
+const uploadDir = path.join(__dirname, "../client/uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// 3. Multer 설정 (파일 저장 규칙)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // 한글 깨짐 방지 및 중복 방지 (시간+랜덤숫자.확장자)
+    const ext = path.extname(file.originalname);
+    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9) + ext;
+    cb(null, uniqueName);
+  },
+});
+const upload = multer({ storage: storage });
+
+// ==========================================
+// 📷 [1차] 파일 업로드 API (파일만 먼저 서버에 저장)
+// ==========================================
+// 프론트에서 드래그&드롭 하자마자 이 API를 호출해서 파일을 서버에 저장하고,
+// 저장된 파일 정보를 프론트로 돌려줍니다.
+app.post("/api/upload", upload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: "파일이 없습니다." });
+
+  // 저장된 파일 정보 반환
+  res.json({
+    success: true,
+    originalName: req.file.originalname,
+    storedName: req.file.filename,
+    filePath: `/uploads/${req.file.filename}`,
+    fileType: req.file.mimetype,
+  });
+});
+
+// ==========================================
+// 📷 [1차] 파일 업로드 API (파일만 먼저 서버에 저장)
+// ==========================================
+// 프론트에서 드래그&드롭 하자마자 이 API를 호출해서 파일을 서버에 저장하고,
+// 저장된 파일 정보를 프론트로 돌려줍니다.
+app.post("/api/upload", upload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: "파일이 없습니다." });
+
+  // 저장된 파일 정보 반환
+  res.json({
+    success: true,
+    originalName: req.file.originalname,
+    storedName: req.file.filename,
+    filePath: `/uploads/${req.file.filename}`,
+    fileType: req.file.mimetype,
+  });
 });
 
 // ==========================================
@@ -472,6 +560,130 @@ app.post("/api/post/update", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "서버 오류" });
+  } finally {
+    if (conn)
+      try {
+        await conn.close();
+      } catch (e) {}
+  }
+});
+
+// ==========================================
+// 💬 댓글 목록 조회 (계층형 쿼리 적용)
+// ==========================================
+app.get("/api/comments/:postId", async (req, res) => {
+  const postId = parseInt(req.params.postId);
+  let conn;
+  try {
+    conn = await getConnection();
+
+    const sql = `
+      SELECT COMMENT_ID, 
+             PARENT_COMMENT_ID, 
+             NICKNAME, 
+             CONTENT, 
+             TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI') as CREATED_AT,
+             LEVEL as DEPTH,
+             PRIOR NICKNAME as PARENT_NICKNAME,
+             EMOTICON_URL  -- ★ 여기 추가!
+      FROM COMMENTS
+      WHERE POST_ID = :postId
+      START WITH PARENT_COMMENT_ID IS NULL
+      CONNECT BY PRIOR COMMENT_ID = PARENT_COMMENT_ID
+      ORDER SIBLINGS BY CREATED_AT ASC
+    `;
+
+    const result = await conn.execute(sql, { postId });
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "댓글 조회 실패" });
+  } finally {
+    if (conn)
+      try {
+        await conn.close();
+      } catch (e) {}
+  }
+});
+
+// ==========================================
+// 💬 댓글 작성 API (원댓글 & 답글 공용)
+// ==========================================
+// server/app.js
+
+// [수정] 댓글 작성 API (이모티콘 지원)
+app.post("/api/comments/write", async (req, res) => {
+  // emoticon 값 추가로 받기
+  const { postId, parentCommentId, nickname, password, content, emoticon } =
+    req.body;
+
+  let conn;
+  try {
+    conn = await getConnection();
+
+    await conn.execute(
+      `INSERT INTO COMMENTS (POST_ID, PARENT_COMMENT_ID, NICKNAME, PASSWORD, CONTENT, EMOTICON_URL)
+       VALUES (:postId, :parentCommentId, :nickname, :password, :content, :emoticon)`,
+      {
+        postId,
+        parentCommentId: parentCommentId || null,
+        nickname,
+        password,
+        // 내용이 없으면(이모티콘만 보낼 때) 빈 문자열 처리
+        content: content || "",
+        // 이모티콘 URL 저장 (없으면 null)
+        emoticon: emoticon || null,
+      },
+      { autoCommit: true },
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "댓글 작성 실패" });
+  } finally {
+    if (conn)
+      try {
+        await conn.close();
+      } catch (e) {}
+  }
+});
+
+// ==========================================
+// 💬 댓글 삭제 API
+// ==========================================
+app.post("/api/comments/delete", async (req, res) => {
+  const { commentId, password } = req.body;
+  let conn;
+  try {
+    conn = await getConnection();
+
+    // 1. 비밀번호 확인
+    const check = await conn.execute(
+      `SELECT PASSWORD FROM COMMENTS WHERE COMMENT_ID = :id`,
+      [commentId],
+    );
+
+    if (check.rows.length === 0) {
+      return res.status(404).json({ message: "댓글이 없습니다." });
+    }
+
+    if (check.rows[0].PASSWORD !== password) {
+      return res.json({ success: false, message: "비밀번호 불일치" });
+    }
+
+    // 2. 삭제
+    // (ON DELETE CASCADE가 걸려있으면 자식 댓글도 같이 삭제될 수 있음 - 정책에 따라 다름)
+    await conn.execute(
+      `DELETE FROM COMMENTS WHERE COMMENT_ID = :id`,
+      [commentId],
+      { autoCommit: true },
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "삭제 중 오류 발생" });
   } finally {
     if (conn)
       try {

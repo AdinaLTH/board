@@ -91,42 +91,220 @@
         margin-top: 5px;
       }
 
-      /* 4. 댓글 영역 */
+      /* ========================================= */
+      /* 4. 댓글 영역 (전체 컨테이너) */
+      /* ========================================= */
       .comment-section {
         background-color: #1e1e1e;
         padding: 20px;
         border-radius: 8px;
+        margin-top: 30px;
       }
+
       .comment-header {
-        margin-bottom: 15px;
+        margin-bottom: 20px;
         font-weight: bold;
-        border-bottom: 1px solid #333;
+        border-bottom: 1px solid #444;
         padding-bottom: 10px;
+        font-size: 1.1rem;
+        color: #fff;
       }
-      .comment-input-box {
+
+      /* ========================================= */
+      /* 댓글 목록 (리스트 아이템) */
+      /* ========================================= */
+      .comment-item {
+        padding: 10px 0; /* 위아래 여백을 15px -> 10px로 축소 */
+        border-bottom: 1px solid #333;
+        text-align: left; /* ★ 핵심: 모든 내용을 왼쪽 정렬로 강제 */
+      }
+
+      /* 대댓글 스타일 - 박스 크기도 축소 */
+      .comment-item.reply {
+        background-color: #252525;
+        border-radius: 4px;
+        padding: 8px 12px; /* 내부 여백도 줄임 */
+        margin-top: 4px; /* 위아래 간격 줄임 */
+        margin-bottom: 4px;
+        border-left: 3px solid #555;
+        /* margin-left는 JS에서 계산하므로 CSS에선 뺍니다 */
+      }
+
+      /* 작성자/날짜 정보 - 여백 축소 */
+      .cmt-meta {
+        font-size: 0.8rem; /* 폰트 살짝 줄임 */
+        color: #aaa;
+        margin-bottom: 4px; /* 본문과의 간격을 8px -> 4px로 좁힘 */
         display: flex;
-        flex-direction: column;
-        gap: 10px;
+        align-items: center;
+        gap: 8px;
       }
-      textarea {
-        width: 100%;
-        height: 80px;
+
+      .cmt-writer {
+        color: #fff;
+        font-weight: bold;
+        font-size: 0.95rem;
+      }
+
+      /* 댓글 본문 */
+      .cmt-content {
+        font-size: 0.95rem;
+        line-height: 1.4; /* 줄간격 살짝 좁힘 */
+        white-space: pre-wrap;
+        color: #e0e0e0;
+        text-align: left; /* ★ 확실하게 왼쪽 정렬 */
+        padding-left: 2px; /* 시각적 보정 */
+      }
+
+      /* 답글/삭제 버튼 영역 - 위쪽 여백 축소 */
+      .cmt-actions {
+        margin-top: 4px; /* 본문과의 간격을 10px -> 4px로 좁힘 */
+        font-size: 0.75rem;
+      }
+
+      .cmt-btn {
+        background: none;
+        border: none;
+        color: #777;
+        cursor: pointer;
+        padding: 0;
+        margin-right: 10px;
+        transition: color 0.2s;
+      }
+      .cmt-btn:hover {
+        color: #bbb;
+        text-decoration: underline;
+      }
+
+      /* ========================================= */
+      /* 댓글 작성 폼 (메인 & 답글 공통) */
+      /* ========================================= */
+
+      /* 메인 댓글 작성 영역 (맨 아래) */
+      .comment-form-main {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px dashed #444;
+      }
+
+      /* 닉네임, 비밀번호를 가로로 배치하기 위한 줄 */
+      .form-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      /* 입력창 공통 디자인 */
+      .form-control {
         background-color: #121212;
         border: 1px solid #333;
         color: #ddd;
         padding: 10px;
         border-radius: 5px;
-        resize: none;
-        box-sizing: border-box;
+        box-sizing: border-box; /* 테두리 포함 크기 계산 */
       }
+
+      /* input 태그(닉네임, 비번)는 가로 공간을 똑같이 나눠가짐 */
+      .form-row input {
+        flex: 1;
+      }
+
+      /* 텍스트 영역 (내용) */
+      textarea.form-control {
+        width: 100%;
+        height: 80px;
+        resize: none; /* 크기 조절 막기 */
+      }
+
+      /* 등록 버튼 */
       .btn-submit {
-        align-self: flex-end;
-        padding: 8px 16px;
+        margin-top: 10px;
+        padding: 8px 20px;
         background-color: #007bff;
         color: white;
         border: none;
         border-radius: 4px;
         cursor: pointer;
+        font-weight: bold;
+      }
+      .btn-submit:hover {
+        background-color: #0056b3;
+      }
+
+      /* 이모티콘 버튼 */
+      .btn-emoji {
+        background: none;
+        border: 1px solid #444;
+        color: #aaa;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-emoji:hover {
+        background-color: #333;
+        color: white;
+      }
+      .btn-emoji.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+      }
+
+      /* 이모티콘 팔레트 (선택창) */
+      .emoticon-picker {
+        background-color: #222;
+        border: 1px solid #444;
+        border-radius: 5px;
+        padding: 10px;
+        margin-top: 5px;
+        margin-bottom: 10px;
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fill,
+          minmax(60px, 1fr)
+        ); /* 바둑판 배열 */
+        gap: 5px;
+        max-height: 150px;
+        overflow-y: auto; /* 스크롤 가능 */
+      }
+
+      /* 팔레트 안의 이미지들 */
+      .emoticon-item {
+        width: 100%;
+        cursor: pointer;
+        border-radius: 4px;
+        padding: 5px;
+        box-sizing: border-box;
+      }
+      .emoticon-item:hover {
+        background-color: #444;
+      }
+
+      /* 선택된 이모티콘 강조 */
+      .emoticon-item.selected {
+        background-color: #007bff;
+        border: 2px solid #fff;
+      }
+
+      /* 댓글 목록에 표시될 실제 이모티콘 크기 */
+      .cmt-emoticon-img {
+        display: block;
+        max-width: 100px;
+        max-height: 100px;
+        margin-top: 5px;
+        border-radius: 4px;
+      }
+
+      /* ========================================= */
+      /* 답글(대댓글) 작성 폼 - 평소엔 숨겨둠 */
+      /* ========================================= */
+      .reply-form {
+        margin-top: 15px;
+        padding: 15px;
+        background-color: #2a2a2a;
+        border-radius: 5px;
+        border: 1px solid #444;
+        display: none; /* ★ 중요: 평소에는 안 보임 */
       }
 
       /* 하단 목록 버튼 */
@@ -198,10 +376,55 @@
       </div>
 
       <div class="comment-section">
-        <div class="comment-header">댓글</div>
-        <div class="comment-input-box">
-          <textarea placeholder="댓글을 입력하세요..."></textarea>
-          <button class="btn-submit">댓글 작성</button>
+        <div class="comment-header">
+          댓글 <span id="comment-total">0</span>개
+        </div>
+
+        <div id="comment-list"></div>
+
+        <div class="comment-form-main">
+          <div class="form-row">
+            <input
+              type="text"
+              id="cmt-nick"
+              class="form-control"
+              placeholder="닉네임"
+            />
+            <input
+              type="password"
+              id="cmt-pass"
+              class="form-control"
+              placeholder="비밀번호"
+            />
+          </div>
+          <div class="form-row">
+            <textarea
+              id="cmt-content"
+              class="form-control"
+              placeholder="내용을 입력하세요"
+              style="height: 80px"
+            ></textarea>
+          </div>
+
+          <div
+            id="emoticon-picker"
+            class="emoticon-picker"
+            style="display: none"
+          ></div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-top: 10px;
+            "
+          >
+            <button class="btn-emoji" onclick="toggleEmoticonPicker()">
+              이모티콘
+            </button>
+            <button class="btn-submit" onclick="writeComment()">등록</button>
+          </div>
         </div>
       </div>
 
